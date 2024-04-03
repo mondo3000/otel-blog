@@ -1,0 +1,56 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: otel-blog
+spec:
+  selector:
+    app: otel-blog
+  ports:
+    - port: 5000
+      targetPort: 5000
+  type: LoadBalancer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otel-blog
+spec:
+  selector:
+    matchLabels:
+      app: otel-blog
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: otel-blog
+    spec:
+      containers:
+      - name: otel-blog
+        image: mondosage/otel-blog:v1.8
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        env:
+        - name: OTEL_K8S_NODE_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: spec.nodeName
+        - name: OTEL_K8S_POD_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+        - name: OTEL_RESOURCE_ATTRIBUTES
+          value: "k8s.node.name=$(OTEL_K8S_NODE_NAME),k8s.pod.name=$(OTEL_K8S_POD_NAME)"
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://appdynamics-otel-collector-service.appdynamics.svc.cluster.local:4317"
+        ports:
+          - containerPort: 5000
+            name: service
+        command: ['sh', '-c']
+        args: ['OTEL_RESOURCE_ATTRIBUTES=$OTEL_RESOURCE_ATTRIBUTES,container.id=$(sed -rn "s|.*sandboxes\/([[:alnum:]]+)\/hostname.*|\1|p" /proc/self/mountinfo) && flask run --host 0.0.0.0']
