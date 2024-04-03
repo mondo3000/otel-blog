@@ -20,9 +20,9 @@ on:
         - warning
         - debug
       tags:
-        description: 'Test scenario tags'
+        description: 'Source of build'
         required: false
-        type: boolean
+        type: string
    
 
 permissions:
