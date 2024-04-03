@@ -19,10 +19,11 @@ on:
         - info
         - warning
         - debug
-      tags:
-        description: 'Source of build'
+      source:
+        description: "Where was I triggered from?"
         required: false
         type: string
+    
    
 
 permissions:
