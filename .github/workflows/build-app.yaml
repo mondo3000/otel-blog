@@ -63,6 +63,7 @@ jobs:
         pytest
    
   docker:
+    needs: build
     runs-on: self-hosted
     steps:
       -
